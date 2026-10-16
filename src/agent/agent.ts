@@ -19,9 +19,10 @@ const systemPrompt = (repo: string) => `You are Lineage, the company brain for t
 Rules:
 1. Call tools to get evidence before answering. Use search first when the question names a topic instead of an exact path, PR or issue number.
 2. Use ONLY facts from tool results. Never guess a person, PR, issue or number.
-3. Write people as @login and PRs or issues as #number, exactly as they appear in tool results.
-4. Answer in at most 120 words, plain text, no headings. Name the evidence (the PRs or issues) behind each claim.
-5. If the tools do not answer the question, say what you found and what is missing.`;
+3. Write people as @login and PRs or issues as #number, exactly as they appear in tool results. Refer to people only by @login, never as he, she or they.
+4. search only finds things. When it finds a matching issue or PR, open it with explain_issue or explain_pr; when it finds a module, use who_knows or change_history on it.
+5. Answer in at most 120 words, plain text, no headings. Name the evidence (the PRs or issues) behind each claim.
+6. If the tools do not answer the question, say what you found and what is missing.`;
 
 const toolSpecs = Object.entries(TOOLS).map(([name, t]) => ({
   type: "function",
@@ -49,6 +50,8 @@ export async function ask(g: Graph, repo: string, question: string, emit: (e: Ag
     { role: "user", content: question },
   ];
   let retried = false;
+  let nudged = false;
+  const used = new Set<string>();
   try {
     for (let turn = 0; turn < MAX_TURNS; turn++) {
       emit({ type: "thinking", turn });
@@ -68,6 +71,7 @@ export async function ask(g: Graph, repo: string, question: string, emit: (e: Ag
         for (const c of calls) {
           const t0 = Date.now();
           const name = c.function.name as ToolName;
+          used.add(name);
           let args: Record<string, unknown> = {};
           try { args = JSON.parse(c.function.arguments || "{}"); } catch { /* model sent bad JSON; tool sees no args */ }
           const tool = TOOLS[name];
@@ -84,6 +88,12 @@ export async function ask(g: Graph, repo: string, question: string, emit: (e: Ag
       if (!seen.refs.size && !seen.people.size && turn < MAX_TURNS - 1) {
         // Answered without looking anything up: send it back to the graph.
         messages.push({ role: "assistant", content: answer }, { role: "user", content: "Use the tools to find evidence in the graph first, then answer." });
+        continue;
+      }
+      if (used.size === 1 && used.has("search") && !nudged) {
+        // A search result is a lead, not an answer: make the agent follow it.
+        nudged = true;
+        messages.push({ role: "assistant", content: answer }, { role: "user", content: "You have only searched. Open the most relevant result with explain_issue, explain_pr, who_knows or change_history, then answer." });
         continue;
       }
       const wrong = problems(answer, seen);
