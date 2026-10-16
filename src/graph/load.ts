@@ -5,7 +5,8 @@
 //   (:Person)-[:OPENED|COMMENTED]->(:Issue)    (:PR)-[:FIXES]->(:Issue)
 //   (:PR)-[:TOUCHED {added, deleted}]->(:File)-[:IN]->(:Module)-[:IN]->(:Module)...
 //   (:PR|Issue)-[:LABELED]->(:Label)
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
 import type { Graph } from "falkordb";
 import { graphFor, closeDb } from "./db.ts";
 import { rawPath, type RawRepo } from "../github/fetch.ts";
@@ -103,7 +104,11 @@ export async function loadRepo(raw: RawRepo) {
 if (process.argv[1]?.endsWith("load.ts")) {
   const repo = process.argv[2] ?? "FalkorDB/FalkorDB";
   const t = Date.now();
-  const g = await loadRepo(JSON.parse(readFileSync(rawPath(repo), "utf8")));
+  // A fresh fetch if there is one, otherwise the snapshot committed with the code.
+  const path = existsSync(rawPath(repo)) ? rawPath(repo) : `data/snapshot/${repo.replace("/", "__")}.json.gz`;
+  const bytes = readFileSync(path);
+  const g = await loadRepo(JSON.parse((path.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8")));
+  console.log(`from ${path}`);
   const counts = await g.query<{ label: string; n: number }>("MATCH (n) RETURN labels(n)[0] AS label, count(n) AS n ORDER BY n DESC");
   const edges = await g.query<{ type: string; n: number }>("MATCH ()-[e]->() RETURN type(e) AS type, count(e) AS n ORDER BY n DESC");
   console.log(counts.data?.map((r) => `${r.label}:${r.n}`).join("  "));
