@@ -7,8 +7,8 @@
   "scripts": {
     "fetch": "tsx src/github/fetch.ts",
     "load": "tsx src/graph/load.ts",
-    "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "dev": "node --env-file=.env --import tsx --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env --import tsx src/server.ts",
     "test": "node --import tsx --test src/agent/validate.test.ts",
     "ask": "node --env-file=.env --import tsx src/ask.ts"
   },

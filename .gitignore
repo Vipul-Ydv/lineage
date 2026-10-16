@@ -3,3 +3,4 @@ data/raw/
 .env
 dist/
 web/dist/
+web/node_modules/
