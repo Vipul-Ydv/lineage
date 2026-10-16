@@ -5,8 +5,8 @@
   "type": "module",
   "description": "A company brain for an open-source project: people, PRs, issues and files in FalkorDB, with an agent that shows the path behind every answer.",
   "scripts": {
-    "fetch": "tsx src/github/fetch.ts",
-    "load": "tsx src/graph/load.ts",
+    "fetch": "node --import tsx src/github/fetch.ts",
+    "load": "node --import tsx src/graph/load.ts",
     "dev": "node --env-file=.env --import tsx --watch src/server.ts",
     "start": "node --env-file-if-exists=.env --import tsx src/server.ts",
     "test": "node --import tsx --test src/agent/validate.test.ts",
