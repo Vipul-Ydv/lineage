@@ -10,7 +10,7 @@ import type { Graph } from "falkordb";
 import { graphFor, closeDb } from "./db.ts";
 import { rawPath, type RawRepo } from "../github/fetch.ts";
 
-const BOTS = /\[bot\]$|bot$|^(coderabbitai|copilot-pull-request-reviewer|copilot-swe-agent|dependabot|github-actions)$/i;
+const BOTS = /\[bot\]$|bot$|^(coderabbitai|copilot-pull-request-reviewer|copilot-swe-agent|dependabot|github-actions|github-code-quality|github-advanced-security|cubic-dev-ai)$/i;
 export const isBot = (login: string) => BOTS.test(login);
 const MODULE_DEPTH = 4;
 
@@ -21,7 +21,7 @@ export function modulesOf(path: string): string[] {
 }
 
 async function batched<T>(g: Graph, query: string, rows: T[], size = 500) {
-  for (let i = 0; i < rows.length; i += size) await g.query(query, { params: { rows: rows.slice(i, i + size) as unknown[] } });
+  for (let i = 0; i < rows.length; i += size) await g.query(query, { params: { rows: rows.slice(i, i + size) as never } });
 }
 
 export async function loadRepo(raw: RawRepo) {

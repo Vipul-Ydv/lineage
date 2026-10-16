@@ -9,7 +9,8 @@
     "load": "tsx src/graph/load.ts",
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
-    "test": "node --import tsx --test src/**/*.test.ts"
+    "test": "node --import tsx --test src/agent/validate.test.ts",
+    "ask": "node --env-file=.env --import tsx src/ask.ts"
   },
   "dependencies": {
     "falkordb": "^6.8.0"
