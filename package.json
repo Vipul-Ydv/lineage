@@ -1,0 +1,22 @@
+{
+  "name": "lineage",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A company brain for an open-source project: people, PRs, issues and files in FalkorDB, with an agent that shows the path behind every answer.",
+  "scripts": {
+    "fetch": "tsx src/github/fetch.ts",
+    "load": "tsx src/graph/load.ts",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "node --import tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "falkordb": "^6.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
